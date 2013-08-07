@@ -1,6 +1,8 @@
 # Compiled source #
 ###################
-*.exe
+*.pdb
+*.vshost.exe
+*.manifest
 
 # Packages #
 ############
@@ -16,7 +18,8 @@
 *.zip
 
 ## VS 2008 ##
-bin
+#bin
+Debug
 obj
 *.suo
 *.user

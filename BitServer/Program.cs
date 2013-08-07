@@ -24,28 +24,28 @@ namespace BitServer
         public string subject = string.Empty;
         public bool onData = false;
         public bool isCommand = false;
-#if DEBUG
         public bool spam=false;
-#endif
     }
 
     public class BitSettings
     {
         public bool Random;
         public bool StripHdr;
+        public bool RemQuoting;
         public string IP;
         public int Port;
         public string UName;
         public string UPass;
         public string BitConfig;
+        public string Extension;
     }
 
     class Program
     {
 
         private const string EXTENSION = "bitmessage.ch";
-        private const string RANDOM = "random@bitmessage.ch";
-        private const string COMMAND = "cmd@bitmessage.ch";
+        private const string RANDOM = "random@";
+        private const string COMMAND = "cmd@";
         private const string CONFIG = "BitServer.ini";
 
         private static POP3server Psrv;
@@ -60,7 +60,8 @@ namespace BitServer
         private static POP3message[] POP3msg;
         private static List<POP3message> AuxMessages;
         private static List<string> AckMessage;
-        private static BitSettings BS;
+        private static BitAddr[] myAddr;
+        public static BitSettings BS;
 
         private static frmLoop GUI;
         private static NotifyIcon NFI;
@@ -212,7 +213,9 @@ It is also possible, that you deleted the message from the outbox.", parts[1]));
             INI.setSetting(CONFIG, "API", "NAME", B.UName);
             INI.setSetting(CONFIG, "API", "PASS", B.UPass);
             INI.setSetting(CONFIG, "MAIL", "RANDOM", B.Random?"TRUE":"FALSE");
-            INI.setSetting(CONFIG, "MAIL", "STRIP", B.StripHdr?"TRUE":"FALSE");
+            INI.setSetting(CONFIG, "MAIL", "STRIP", B.StripHdr ? "TRUE" : "FALSE");
+            INI.setSetting(CONFIG, "MAIL", "RQUOT", B.RemQuoting? "TRUE" : "FALSE");
+            INI.setSetting(CONFIG, "MAIL", "EXT", B.Extension);
             initBS();
             BitAPIserver.init(BS);
             bool passIO = true;
@@ -272,8 +275,15 @@ It is also possible, that you deleted the message from the outbox.", parts[1]));
                 BS.UName = INI.getSetting(CONFIG, "API", "NAME");
                 BS.UPass = INI.getSetting(CONFIG, "API", "PASS");
             }
+
             BS.Random = toEmpty(INI.getSetting(CONFIG, "MAIL", "RANDOM")).ToUpper() == "TRUE";
-            BS.StripHdr = toEmpty(INI.getSetting(CONFIG, "MAIL", "STRIP")).ToUpper()=="TRUE";
+            BS.StripHdr = toEmpty(INI.getSetting(CONFIG, "MAIL", "STRIP")).ToUpper() == "TRUE";
+            BS.RemQuoting = toEmpty(INI.getSetting(CONFIG, "MAIL", "RQUOT")).ToUpper() == "TRUE";
+            BS.Extension = toEmpty(INI.getSetting(CONFIG, "MAIL", "EXT"));
+            if (string.IsNullOrEmpty(BS.Extension))
+            {
+                BS.Extension = EXTENSION;
+            }
 
             return !string.IsNullOrEmpty(BS.IP) &&
                 (BS.Port > 0 || BS.Port==-1) &&
@@ -332,6 +342,7 @@ It is also possible, that you deleted the message from the outbox.", parts[1]));
         {
             if (SMTP == null)
             {
+                myAddr = Bitmessage.getAddresses(BitAPIserver.BA);
                 SMS = new SMTPstate();
                 SMTP = new SMTPconnection(c);
                 SMTP.SMTPcommand += new SMTPcommandHandler(SMTP_SMTPcommand);
@@ -375,66 +386,7 @@ It is also possible, that you deleted the message from the outbox.", parts[1]));
                                 switch (SMS.subject.ToLower().Split(' ')[0])
                                 {
                                     case "help":
-                                        adminMsg("OK: BMS Help", @"BitMailService Help
-
-Command usage
--------------
-To use a command, send an E-Mail to cmd@bitmessage.ch
-and write the command in the subject line.
-
-Commands and their arguments
-----------------------------
-> help
-shows this help
-
-> subscribe    <address> [label]
-> sub          <address> [label]
-subscribes to an address
-
-> unsubscribe  <address>
-> usub         <address>
-unsubscribes from an address
-
-> status       <text>
-sets statusbar text
-
-> killall
-deletes all messages from inbox.
-Careful with this command, some E-mail clients get confused when messages suddenly disappear.
-
-> createAddr   [passphrase]
-creates random or deterministic address.
-If the passphrase is given, a deterministic address is generated,
-if not, a random address is created.
-The response contains the address in the body.
-
-> list
-lists all addresses
-
-Response
---------
-Responses are given in form of a POP3 Message. A message subject either starts with ERR or OK.
-The body contains detailed informations. Respnses are not stored in the application.
-If you quit the B2M exe it will delete the config responses. Bitmessages are not deleted.
-
-License
--------
-B2M - Bitmessage E-Mail gateway
-Copyright (C) 2013  Kevin Gut
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the Do What The Fuck You Want To Public License
-as published by Sam Hocevar, either version 2 of the License, or
-(at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-
-You should have received a copy of the Do What The Fuck You Want To
-Public License along with this program.
-If not, see <http://www.wtfpl.net/txt/copying/>.
-");
+                                        adminMsg("OK: BMS Help", Troll.ADMINHELP);
 
                                         break;
                                     case "status":
@@ -464,6 +416,15 @@ If not, see <http://www.wtfpl.net/txt/copying/>.
                                         {
                                             adminMsg("OK: Address generation", Bitmessage.generateAddress(BitAPIserver.BA, "B2M generated addr"));
                                         }
+                                        break;
+                                    case "listsub":
+                                        string sublist = string.Format("{0} {1} Enabled\r\n", size("Address", 38), size("Label", 20));
+                                        foreach (Subscription s in Bitmessage.getSubscriptions(BitAPIserver.BA))
+                                        {
+                                            sublist += string.Format("{0} {1} {2}\r\n",
+                                                size(s.address, 38), size(s.label, 20), size(s.enabled.ToString(), 7));
+                                        }
+                                        adminMsg("OK: Subscription list", sublist);
                                         break;
                                     case "list":
                                         string addrlist = string.Format("{0} {1} Enabled Stream\r\n",
@@ -548,6 +509,21 @@ Your command line: {0}",SMS.subject));
                                 SMS.subject = raw.Substring(9).Trim();
                             }
                         }
+                        //MIME from field, if the address exists set this.
+                        if (raw.ToLower().StartsWith("from: "))
+                        {
+                            string fromAddr=getAddress(raw);
+                            if (!string.IsNullOrEmpty(fromAddr))
+                            {
+                                foreach (BitAddr a in myAddr)
+                                {
+                                    if (a.address.ToLower() == fromAddr.ToLower())
+                                    {
+                                        SMS.from = a.address;
+                                    }
+                                }
+                            }
+                        }
                         if (BS.StripHdr)
                         {
                             SMS.message += stripQuoted(raw + "\r\n");
@@ -580,7 +556,7 @@ Your command line: {0}",SMS.subject));
                                     else
                                     {
                                         bool found = false;
-                                        foreach (var Addr in Bitmessage.getAddresses(BitAPIserver.BA))
+                                        foreach (var Addr in myAddr)
                                         {
                                             if (Addr.address.ToLower() == addr.ToLower() || Addr.label.ToLower() == addr.ToLower())
                                             {
@@ -686,18 +662,41 @@ Your command line: {0}",SMS.subject));
             }
         }
 
+        private static string getAddress(string raw)
+        {
+            if (raw.Contains(":"))
+            {
+                raw = raw.Substring(raw.IndexOf(':'));
+            }
+            if (raw.Contains("<"))
+            {
+                raw = raw.Substring(raw.IndexOf('<') + 1);
+            }
+            if (raw.Contains(">"))
+            {
+                raw = raw.Substring(0,raw.IndexOf('>'));
+            }
+            return raw.Split('@')[0].Trim();
+        }
+
         private static void adminMsg(string subject, string body)
         {
+            BitAddr a = new BitAddr();
+            a.address = "admin";
+            a.enabled = true;
+            a.label = "local admin";
+            a.stream = 1;
+
             BitMsg BM = new BitMsg();
             BM.encodingType = 3;
             BM.fromAddress = "cmd";
             BM.toAddress = "admin";
             BM.message = body;
             BM.subject = subject;
-            BM.receivedTime = (int)DateTime.Now.ToFileTimeUtc();
+            BM.receivedTime = UnixTime.ConvertTo(DateTime.Now);
             BM.msgid = MsgCount.ToString();
             MsgCount++;
-            AuxMessages.Add(new POP3message(0, BM));
+            AuxMessages.Add(new POP3message(0, BM, new BitAddr[] { a }));
         }
 
         private static string stripQuoted(string input)
@@ -800,10 +799,11 @@ Your command line: {0}",SMS.subject));
                                 }
                                 else
                                 {
+                                    myAddr=Bitmessage.getAddresses(BitAPIserver.BA);
                                     POP3msg = new POP3message[allMsg.Length];
                                     for (int i = 0; i < POP3msg.Length; i++)
                                     {
-                                        POP3msg[i] = new POP3message(i + 1, allMsg[i]);
+                                        POP3msg[i] = new POP3message(i + 1, allMsg[i],myAddr);
                                     }
                                     POP3.ok("Thanks. next time do it faster");
                                 }
@@ -1126,11 +1126,30 @@ QUIT
             {
                 if (headerMode)
                 {
+                    if (!Line.Contains(":") && !Line.StartsWith("\t") && !Line.StartsWith(" "))
+                    {
+                        if (BS.RemQuoting)
+                        {
+                            retValue += Line.TrimStart(new char[] { '>' }) + "\r\n";
+                        }
+                        else
+                        {
+                            retValue += Line + "\r\n";
+                        }
+                    }
                     headerMode = (Line.Trim() != String.Empty);
                 }
                 else
                 {
-                    retValue += Line + "\r\n";
+
+                    if (BS.RemQuoting)
+                    {
+                        retValue += Line.TrimStart(new char[] { '>' }) + "\r\n";
+                    }
+                    else
+                    {
+                        retValue += Line + "\r\n";
+                    }
                     if (Line.StartsWith("---") && Line.EndsWith("---"))
                     {
                         headerMode = true;

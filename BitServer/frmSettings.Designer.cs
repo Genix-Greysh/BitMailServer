@@ -30,11 +30,14 @@
         {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(frmSettings));
             this.gbAPI = new System.Windows.Forms.GroupBox();
+            this.btnExtHelp = new System.Windows.Forms.Button();
+            this.label8 = new System.Windows.Forms.Label();
             this.label7 = new System.Windows.Forms.Label();
             this.label6 = new System.Windows.Forms.Label();
             this.label5 = new System.Windows.Forms.Label();
             this.label4 = new System.Windows.Forms.Label();
             this.label3 = new System.Windows.Forms.Label();
+            this.tbExt = new System.Windows.Forms.TextBox();
             this.tbPass = new System.Windows.Forms.TextBox();
             this.tbPort = new System.Windows.Forms.TextBox();
             this.tbUser = new System.Windows.Forms.TextBox();
@@ -47,6 +50,8 @@
             this.cbStrip = new System.Windows.Forms.CheckBox();
             this.btnCancel = new System.Windows.Forms.Button();
             this.btnSave = new System.Windows.Forms.Button();
+            this.cbQuoting = new System.Windows.Forms.CheckBox();
+            this.label9 = new System.Windows.Forms.Label();
             this.gbAPI.SuspendLayout();
             this.gbMail.SuspendLayout();
             this.SuspendLayout();
@@ -55,11 +60,14 @@
             // 
             this.gbAPI.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
                         | System.Windows.Forms.AnchorStyles.Right)));
+            this.gbAPI.Controls.Add(this.btnExtHelp);
+            this.gbAPI.Controls.Add(this.label8);
             this.gbAPI.Controls.Add(this.label7);
             this.gbAPI.Controls.Add(this.label6);
             this.gbAPI.Controls.Add(this.label5);
             this.gbAPI.Controls.Add(this.label4);
             this.gbAPI.Controls.Add(this.label3);
+            this.gbAPI.Controls.Add(this.tbExt);
             this.gbAPI.Controls.Add(this.tbPass);
             this.gbAPI.Controls.Add(this.tbPort);
             this.gbAPI.Controls.Add(this.tbUser);
@@ -71,6 +79,25 @@
             this.gbAPI.TabIndex = 0;
             this.gbAPI.TabStop = false;
             this.gbAPI.Text = "API";
+            // 
+            // btnExtHelp
+            // 
+            this.btnExtHelp.Location = new System.Drawing.Point(468, 95);
+            this.btnExtHelp.Name = "btnExtHelp";
+            this.btnExtHelp.Size = new System.Drawing.Size(21, 23);
+            this.btnExtHelp.TabIndex = 11;
+            this.btnExtHelp.Text = "?";
+            this.btnExtHelp.UseVisualStyleBackColor = true;
+            this.btnExtHelp.Click += new System.EventHandler(this.btnExtHelp_Click);
+            // 
+            // label8
+            // 
+            this.label8.AutoSize = true;
+            this.label8.Location = new System.Drawing.Point(304, 100);
+            this.label8.Name = "label8";
+            this.label8.Size = new System.Drawing.Size(56, 13);
+            this.label8.TabIndex = 10;
+            this.label8.Text = "Extension:";
             // 
             // label7
             // 
@@ -118,6 +145,14 @@
             this.label3.TabIndex = 0;
             this.label3.Text = "keys.dat File";
             // 
+            // tbExt
+            // 
+            this.tbExt.Location = new System.Drawing.Point(362, 97);
+            this.tbExt.Name = "tbExt";
+            this.tbExt.Size = new System.Drawing.Size(100, 20);
+            this.tbExt.TabIndex = 8;
+            this.tbExt.Text = "bitmessage.ch";
+            // 
             // tbPass
             // 
             this.tbPass.Location = new System.Drawing.Point(78, 97);
@@ -162,13 +197,15 @@
             // 
             this.gbMail.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
                         | System.Windows.Forms.AnchorStyles.Right)));
+            this.gbMail.Controls.Add(this.label9);
             this.gbMail.Controls.Add(this.label2);
             this.gbMail.Controls.Add(this.label1);
+            this.gbMail.Controls.Add(this.cbQuoting);
             this.gbMail.Controls.Add(this.cbRandom);
             this.gbMail.Controls.Add(this.cbStrip);
             this.gbMail.Location = new System.Drawing.Point(12, 176);
             this.gbMail.Name = "gbMail";
-            this.gbMail.Size = new System.Drawing.Size(495, 152);
+            this.gbMail.Size = new System.Drawing.Size(495, 198);
             this.gbMail.TabIndex = 1;
             this.gbMail.TabStop = false;
             this.gbMail.Text = "E-Mail";
@@ -213,12 +250,13 @@
             this.cbStrip.TabIndex = 0;
             this.cbStrip.Text = "Strip E-Mail Headers and quoted printable Text (=XX)";
             this.cbStrip.UseVisualStyleBackColor = true;
+            this.cbStrip.Click += new System.EventHandler(this.cbStrip_CheckedChanged);
             // 
             // btnCancel
             // 
             this.btnCancel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.btnCancel.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-            this.btnCancel.Location = new System.Drawing.Point(432, 339);
+            this.btnCancel.Location = new System.Drawing.Point(432, 383);
             this.btnCancel.Name = "btnCancel";
             this.btnCancel.Size = new System.Drawing.Size(75, 23);
             this.btnCancel.TabIndex = 3;
@@ -228,7 +266,7 @@
             // btnSave
             // 
             this.btnSave.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnSave.Location = new System.Drawing.Point(351, 339);
+            this.btnSave.Location = new System.Drawing.Point(351, 383);
             this.btnSave.Name = "btnSave";
             this.btnSave.Size = new System.Drawing.Size(75, 23);
             this.btnSave.TabIndex = 2;
@@ -236,12 +274,31 @@
             this.btnSave.UseVisualStyleBackColor = true;
             this.btnSave.Click += new System.EventHandler(this.btnSave_Click);
             // 
+            // cbQuoting
+            // 
+            this.cbQuoting.AutoSize = true;
+            this.cbQuoting.Location = new System.Drawing.Point(6, 156);
+            this.cbQuoting.Name = "cbQuoting";
+            this.cbQuoting.Size = new System.Drawing.Size(131, 17);
+            this.cbQuoting.TabIndex = 2;
+            this.cbQuoting.Text = "Remove Quoting \">>\"";
+            this.cbQuoting.UseVisualStyleBackColor = true;
+            // 
+            // label9
+            // 
+            this.label9.AutoSize = true;
+            this.label9.Location = new System.Drawing.Point(36, 176);
+            this.label9.Name = "label9";
+            this.label9.Size = new System.Drawing.Size(260, 13);
+            this.label9.TabIndex = 3;
+            this.label9.Text = "Simply removes all \">\" from the beginning of each line";
+            // 
             // frmSettings
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.CancelButton = this.btnCancel;
-            this.ClientSize = new System.Drawing.Size(519, 374);
+            this.ClientSize = new System.Drawing.Size(519, 418);
             this.Controls.Add(this.btnSave);
             this.Controls.Add(this.btnCancel);
             this.Controls.Add(this.gbMail);
@@ -280,5 +337,10 @@
         private System.Windows.Forms.Label label5;
         private System.Windows.Forms.Label label4;
         private System.Windows.Forms.Label label3;
+        private System.Windows.Forms.Button btnExtHelp;
+        private System.Windows.Forms.Label label8;
+        private System.Windows.Forms.TextBox tbExt;
+        private System.Windows.Forms.Label label9;
+        private System.Windows.Forms.CheckBox cbQuoting;
     }
 }

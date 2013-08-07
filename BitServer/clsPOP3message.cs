@@ -23,19 +23,35 @@ namespace BitServer
         private string to = string.Empty;
         private string subject = string.Empty;
 
-        public POP3message(int ID,BitMsg MSG)
+        public POP3message(int ID,BitMsg MSG,BitAddr[] LocalAddr)
         {
+            string rec = MSG.toAddress.Replace(BR_SUB, BR);
+            if (rec == BR)
+            {
+                rec = string.Format("'Broadcast subscribers' <{0}@{1}>", BR, Program.BS.Extension);
+            }
+            else
+            {
+                foreach (BitAddr a in LocalAddr)
+                {
+                    if (a.address == rec)
+                    {
+                        rec = string.Format("'{0}' <{1}@{2}>", a.label.Replace('"', '_'), rec, Program.BS.Extension);
+                    }
+                }
+            }
             MSG.message.Replace("\r\n", "\n");
             if (!isMail(MSG.message))
             {
                 //prepend Mail Headers
-                Body += string.Format(@"Return-Path: {0}@bitmessage.ch
-To: {1}@bitmessage.ch
-From: {0}@bitmessage.ch
+                Body += string.Format(@"Return-Path: {0}@{4}
+To: {1}@{4}
+From: {0}@{4}
 Subject: {2}
+Date: {3}
 Received: {3}
 
-", MSG.fromAddress, MSG.toAddress.Replace(BR_SUB, BR), MSG.subject, MSG.receivedTime);
+", MSG.fromAddress, rec.Replace(BR_SUB, BR), MSG.subject, UnixTime.ConvertFrom(MSG.receivedTime).ToString("R"),Program.BS.Extension);
                 Body += MSG.message;
             }
             else

@@ -6,6 +6,70 @@ namespace BitServer
 {
     public static class Troll
     {
+        public const string ADMINHELP = @"BitMailService Help
+
+Command usage
+-------------
+To use a command, send an E-Mail to cmd@bitmessage.ch
+and write the command in the subject line.
+
+Commands and their arguments
+----------------------------
+> help
+shows this help
+
+> subscribe    <address> [label]
+> sub          <address> [label]
+subscribes to an address
+
+> unsubscribe  <address>
+> usub         <address>
+unsubscribes from an address
+
+> listsub
+Lists subscriptions
+
+> status       <text>
+sets statusbar text
+
+> killall
+deletes all messages from inbox.
+Careful with this command, some E-mail clients get confused when messages suddenly disappear.
+
+> createAddr   [passphrase]
+creates random or deterministic address.
+If the passphrase is given, a deterministic address is generated,
+if not, a random address is created.
+The response contains the address in the body.
+
+> list
+lists all addresses
+
+Response
+--------
+Responses are given in form of a POP3 Message. A message subject either starts with ERR or OK.
+The body contains detailed informations. Respnses are not stored in the application.
+If you quit the B2M exe it will delete the config responses. Bitmessages are not deleted.
+
+License
+-------
+B2M - Bitmessage E-Mail gateway
+Copyright (C) 2013  Kevin Gut
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the Do What The Fuck You Want To Public License
+as published by Sam Hocevar, either version 2 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+You should have received a copy of the Do What The Fuck You Want To
+Public License along with this program.
+If not, see <http://www.wtfpl.net/txt/copying/>.
+";
+
         public static byte[][] Trollface
         {
             get

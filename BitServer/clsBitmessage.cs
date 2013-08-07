@@ -5,6 +5,18 @@ using Newtonsoft.Json;
 
 namespace BitServer
 {
+    public struct Subs
+    {
+        public Subscription[] Sub;
+    }
+
+    public struct Subscription
+    {
+        public string label;
+        public string address;
+        public bool enabled;
+    }
+
     public struct BitAddrs
     {
         public BitAddr[] addresses;
@@ -76,7 +88,6 @@ namespace BitServer
             return BA.createRandomAddress(B64enc(label), false);
         }
 
-
         /// <summary>
         /// Generates a deterministic BitMessage Address
         /// </summary>
@@ -93,7 +104,6 @@ namespace BitServer
             }
             return BA.createDeterministicAddresses(B64enc(passphrase), 1, 3, 1, false);
         }
-
 
         /// <summary>
         /// Returns the bitmessage address, BROADCAST or null if invalid address.
@@ -163,6 +173,25 @@ namespace BitServer
                 ADDR.addresses = new BitAddr[] { };
             }
             return ADDR.addresses;
+        }
+
+        public static Subscription[] getSubscriptions(BitAPI BA)
+        {
+            string s = BA.listSubscriptions();
+            Subs SUBS;
+            try
+            {
+                SUBS = JsonConvert.DeserializeObject<Subs>(s);
+            }
+            catch
+            {
+                SUBS = new Subs();
+            }
+            if (SUBS.Sub == null)
+            {
+                return new Subscription[] { };
+            }
+            return SUBS.Sub;
         }
 
         /// <summary>

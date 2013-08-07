@@ -7,7 +7,7 @@ namespace BitServer
 {
     public static class UnixTime
     {
-        private static DateTime UNIX = new DateTime(1970, 1, 1);
+        private static DateTime UNIX = new DateTime(1970, 1, 1, 0, 0, 0);
         private static DateTime OVERFLOW = new DateTime(2038, 1, 19, 3, 14, 18);
 
         public static DateTime ConvertFrom(int unix)
@@ -17,12 +17,12 @@ namespace BitServer
                 return UNIX.AddSeconds(unix);
             }
             //works until 7 Feb 2106
-            return OVERFLOW.AddSeconds(unix + int.MaxValue);
+            return OVERFLOW.AddSeconds(int.MaxValue - unix);
         }
 
         public static int ConvertTo(DateTime DT)
         {
-            return (int)(DT.Subtract(UNIX).TotalSeconds);
+            return (int)DT.Subtract(UNIX).TotalSeconds;
         }
     }
 
@@ -52,6 +52,8 @@ namespace BitServer
         void addSubscription(string addr, string base64Label);
         [XmlRpcMethod]
         void deleteSubscription(string addr);
+        [XmlRpcMethod]
+        string listSubscriptions();
         [XmlRpcMethod]
         string getStatus(string ackdata);
     }
